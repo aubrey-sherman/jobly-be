@@ -2,6 +2,8 @@ import { BadRequestError } from "../expressError.js";
 
 /** Given data to update in the database, returns data in a parameterized format
  * for the SET clause in an SQL query
+ * Throws a Bad Request error if no data was entered.
+ *
  * Input:
  * - dataToUpdate: object, data to be converted to a parameterized SQL query
  * that will have placeholders for variables eg. {firstName: 'Aliya', age: 32}
