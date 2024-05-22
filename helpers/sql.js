@@ -34,10 +34,10 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
 /** Returns conditions for an SQL WHERE clause based on `criteria`
  * Input:
  * - criteria: object that can have one or more of the properties minEmployees,
- * maxEmployees, and nameLike eg. { minEmployees: 2 }
+ * maxEmployees, and nameLike eg. { minEmployees: 2, maxEmployees: 3 }
  * Output:
  * Returns a string of conditions for an SQL WHERE clause with values from input
- * eg. "num_employees >= minEmployees & num_employees <= maxEmployees"
+ * eg. "num_employees >= 2 AND num_employees <= 3"
 */
 function sqlForFiltering(criteria) {
   const filterConds = [];
@@ -54,7 +54,7 @@ function sqlForFiltering(criteria) {
     filterConds.push(`name ILIKE '%${criteria.nameLike}%'`);
   }
 
-  return filterConds.join(" & ");
+  return filterConds.join(" AND ");
 }
 
 /*
