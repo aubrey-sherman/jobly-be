@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { BadRequestError, NotFoundError } from "../expressError.js";
-import { sqlForPartialUpdate } from "../helpers/sql.js";
+import { sqlForPartialUpdate, sqlForFiltering } from "../helpers/sql.js";
 
 /** Related functions for companies. */
 
@@ -69,7 +69,25 @@ class Company {
    * Input: object of filter conditions - keys of condition and values (e.g. minEmployees: 2)
    * Returns array of objects of company data based on filter conditions
    */
+  static async findFiltered(criteria) {
+    const filterConds = sqlForFiltering(criteria);
 
+    const companiesRes = await db.query(`
+        SELECT handle,
+               name,
+               description,
+               num_employees AS "numEmployees",
+               logo_url      AS "logoUrl"
+        FROM companies
+        WHERE ${filterConds}
+        ORDER BY name`);
+    return companiesRes.rows;
+  }
+
+  /*
+  WHERE num_employees >= minEmployees & num_employees <= maxEmployees &
+  name ILIKE '%nameLike%'
+  */
 
   /** Given a company handle, return data about company.
    *
