@@ -65,12 +65,15 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** // FIXME: Placeholder doc string for new function
-   * Input: object of filter conditions - keys of condition and values (e.g. minEmployees: 2)
-   * Returns array of objects of company data based on filter conditions
+  /** Find all companies matching given filter criteria.
+   * Input: object of filter criteria, e.g. {minEmployees: 2, nameLike: "c"}
+   * Returns array of objects of company data based on filter conditions, e.g.
+   * [{ handle, name, description, numEmployees, logoUrl }, ...]
    */
   static async findFiltered(criteria) {
     const filterConds = sqlForFiltering(criteria);
+
+    console.log("filterConds", filterConds);
 
     const companiesRes = await db.query(`
         SELECT handle,
@@ -83,11 +86,6 @@ class Company {
         ORDER BY name`);
     return companiesRes.rows;
   }
-
-  /*
-  WHERE num_employees >= minEmployees & num_employees <= maxEmployees &
-  name ILIKE '%nameLike%'
-  */
 
   /** Given a company handle, return data about company.
    *
