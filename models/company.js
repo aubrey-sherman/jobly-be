@@ -1,5 +1,5 @@
 import db from "../db.js";
-import { BadRequestError, NotFoundError} from "../expressError.js";
+import { BadRequestError, NotFoundError } from "../expressError.js";
 import { sqlForPartialUpdate } from "../helpers/sql.js";
 
 /** Related functions for companies. */
@@ -36,12 +36,12 @@ class Company {
                     description,
                     num_employees AS "numEmployees",
                     logo_url AS "logoUrl"`, [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      handle,
+      name,
+      description,
+      numEmployees,
+      logoUrl,
+    ],
     );
     const company = result.rows[0];
 
@@ -64,6 +64,12 @@ class Company {
         ORDER BY name`);
     return companiesRes.rows;
   }
+
+  /** // FIXME: Placeholder doc string for new function
+   * Input: object of filter conditions - keys of condition and values (e.g. minEmployees: 2)
+   * Returns array of objects of company data based on filter conditions
+   */
+
 
   /** Given a company handle, return data about company.
    *
@@ -104,11 +110,11 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
