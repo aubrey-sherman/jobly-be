@@ -6,6 +6,7 @@ import { Router } from "express";
 import { BadRequestError } from "../expressError.js";
 import { ensureLoggedIn } from "../middleware/auth.js";
 import Company from "../models/company.js";
+import compFilterSchema from "../schemas/compFilter.json" with { type: "json" };
 import compNewSchema from "../schemas/compNew.json" with { type: "json" };
 import compUpdateSchema from "../schemas/compUpdate.json" with { type: "json" };
 
@@ -48,7 +49,40 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  const companies = await Company.findAll();
+  if (Object.keys(req.query).length === 0) {
+    const companies = await Company.findAll();
+    return res.json({ companies });
+  }
+
+  const criteria = {};
+  for (const key in req.query) {
+    if (key === "minEmployees") {
+      criteria[key] = Number(req.query[key]);
+    }
+    else if (key === "maxEmployees") {
+      criteria[key] = Number(req.query[key]);
+    }
+    else {
+      criteria[key] = req.query[key];
+    }
+  }
+
+
+  const validator = jsonschema.validate(
+    criteria,
+    compFilterSchema,
+    { required: true },
+  );
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+
+  if (criteria.minEmployees > criteria.maxEmployees) {
+    throw new BadRequestError("Min can't be greater than max.");
+  }
+
+  const companies = await Company.findFiltered(criteria);
   return res.json({ companies });
 });
 

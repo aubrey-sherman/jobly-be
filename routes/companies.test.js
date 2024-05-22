@@ -184,32 +184,32 @@ describe("GET /companies", function () {
       .query({ nameLike: "2", minEmployees: 2, maxEmployees: 4, bad: "nono" });
 
     expect(resp.body).toEqual({
-      companies:
-        [
-          {
-            handle: "c1",
-            name: "C1",
-            description: "Desc1",
-            numEmployees: 1,
-            logoUrl: "http://c1.img",
-          },
+      "error": {
+        "message": [
+          "instance is not allowed to have the additional property \"bad\"",
         ],
+        "status": 400,
+      }
     });
   });
 
   test("minEmployees > maxEmployees", async function () {
-    expect(async function () {
-      await request(app)
-        .get("/companies")
-        .query(
-          {
-            nameLike: "2",
-            minEmployees: 2,
-            maxEmployees: 4,
-            bad: "nono"
-          });
-    })
-      .toThrowError("No data"); // TODO: need to know error message
+    const resp = await request(app)
+      .get("/companies")
+      .query(
+        {
+          minEmployees: 4,
+          maxEmployees: 2
+        });
+
+    expect(resp.body).toEqual(
+      {
+        "error": {
+          "message": "Min can't be greater than max.",
+          "status": 400
+        }
+      }
+    );
   });
 });
 
