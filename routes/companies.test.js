@@ -46,6 +46,7 @@ describe("POST /companies", function () {
     });
   });
 
+  // COOL: good example of readable test description
   test("bad request with missing data", async function () {
     const resp = await request(app)
       .post("/companies")
@@ -193,8 +194,7 @@ describe("GET /companies", function () {
     });
   });
 
-  // TODO: we were trying to check if an error was thrown, but the server
-  // responds with JSON
+  // TODO: Reword test titles for readability
   test("minEmployees > maxEmployees", async function () {
     const resp = await request(app)
       .get("/companies")
@@ -212,6 +212,22 @@ describe("GET /companies", function () {
         }
       }
     );
+  });
+
+  test("handles invalid data types for inputs", async function () {
+    const resp = await request(app)
+      .get("/companies")
+      .query(
+        {
+          minEmployees: "four"
+        });
+
+    expect(resp.body).toEqual({
+      "error": {
+        "message": ["instance.minEmployees is not of a type(s) integer"],
+        "status": 400
+      }
+    });
   });
 });
 
