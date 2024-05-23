@@ -65,15 +65,19 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** Find all companies matching given filter criteria.
-   * Input: object of filter criteria, e.g. {minEmployees: 2, nameLike: "c"}
+  /** Find all companies matching given filter criteria, an object that can only
+   * include minEmployees (an int), maxEmployees (an int) and nameLike (string).
+   *
    * Returns array of objects of company data based on filter conditions, e.g.
    * [{ handle, name, description, numEmployees, logoUrl }, ...]
    */
   static async findFiltered(criteria) {
-    const condsAndValues = Company.parameterizeFilterQuery(criteria);
-    const conds = condsAndValues.conds;
-    const values = condsAndValues.values;
+
+    // COOL: This could be refactored to be part of the findAll method above (only if it's renamed!)
+
+    // COOL: This is a good opp for destructuring from the input criteria
+    // This makes the docstring parameters explicit
+    const { conds, values } = Company.parameterizeFilterQuery(criteria);
 
     const companiesRes = await db.query(`
         SELECT handle,
@@ -84,28 +88,15 @@ class Company {
         FROM companies
         WHERE ${conds}
         ORDER BY name`,
-      [...values]
+      values
     );
     return companiesRes.rows;
   }
 
-  /** Returns conditions and placeholder values for an SQL WHERE clause based on
-   * `criteria`
- * Input:
- * - criteria: object that can have one or more of the properties minEmployees,
- * maxEmployees, and nameLike eg. { minEmployees: 2, maxEmployees: 3 }
- * Output:
- * Returns an object with a property filterConds that is a string of conditions
- * for an SQL WHERE clause with values from input and a property condValues that
- * is the corresponding values for the conditions
- * eg. {
- * filterConds: "num_employees >= $1 AND num_employees <= $2",
- * condValues: [2, 3]
- * }
-*/
 
   /** Returns conditions and placeholder values for an SQL WHERE clause based on
-   * provided filter criteria
+   * provided filter criteria (object), which can only include minEmployees (an
+   * int), maxEmployees (an int), and nameLike (string).
    * eg. { minEmployees: 2, maxEmployees: 3 } => {
    * filterConds: "num_employees >= $1 AND num_employees <= $2",
    * condValues: [2, 3]
@@ -115,24 +106,20 @@ class Company {
     const condsAndValues = {};
     const values = [];
     const conds = [];
-    let valuesCount = 1;
 
     if ("minEmployees" in criteria) {
-      conds.push(`num_employees >= $${valuesCount}`);
+      conds.push(`num_employees >= $${values.length + 1}`);
       values.push(criteria.minEmployees);
-      valuesCount++;
     }
 
     if ("maxEmployees" in criteria) {
-      conds.push(`num_employees <= $${valuesCount}`);
+      conds.push(`num_employees <= $${values.length + 1}`);
       values.push(criteria.maxEmployees);
-      valuesCount++;
     }
 
     if ("nameLike" in criteria) {
-      conds.push(`name ILIKE $${valuesCount}`);
+      conds.push(`name ILIKE $${values.length + 1}`);
       values.push(`%${criteria.nameLike}%`);
-      valuesCount++;
     }
 
     condsAndValues.conds = conds.join(" AND ");
