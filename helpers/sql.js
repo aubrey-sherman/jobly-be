@@ -1,5 +1,7 @@
 import { BadRequestError } from "../expressError.js";
 
+// TODO: tie all the examples together
+// TODO: show input => output
 /** Given data to update in the database, returns data in a parameterized format
  * for the SET clause in an SQL query
  * Throws a Bad Request error if no data was entered.
@@ -14,6 +16,10 @@ import { BadRequestError } from "../expressError.js";
  * Returns an object with the properties `setCols` that contains a string of the
  * SQL columns to be set with the corresponding placeholders and `values` that
  * contains the corresponding values for the placeholders
+ * eg. {
+ * setCols: '"first_name"=$1', '"age"=$2',
+ * values: ["Aliya", 32]
+ * }
  */
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
@@ -31,42 +37,4 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
-/** Returns conditions for an SQL WHERE clause based on `criteria`
- * Input:
- * - criteria: object that can have one or more of the properties minEmployees,
- * maxEmployees, and nameLike eg. { minEmployees: 2, maxEmployees: 3 }
- * Output:
- * Returns a string of conditions for an SQL WHERE clause with values from input
- * eg. "num_employees >= 2 AND num_employees <= 3"
-*/
-function sqlForFiltering(criteria) {
-  const filterConds = [];
-
-  if ("minEmployees" in criteria) {
-    filterConds.push(`num_employees >= ${criteria.minEmployees}`);
-  }
-
-  if ("maxEmployees" in criteria) {
-    filterConds.push(`num_employees <= ${criteria.maxEmployees}`);
-  }
-
-  if ("nameLike" in criteria) {
-    filterConds.push(`name ILIKE '%${criteria.nameLike}%'`);
-  }
-
-  return filterConds.join(" AND ");
-}
-
-/*
-input is an object with filter conditions
-if minEmployees in filterConditions
-push into array a string with num_employees >= filterConditions.minEmployees
-if maxEmployees in filterConditions
-create string with num_employees <= filterConditions.maxEmployees
-if nameLike in filterConditions
-create string with name ILIKE '%nameLike%'
-
-return array joined by " & "
-*/
-
-export { sqlForPartialUpdate, sqlForFiltering };
+export { sqlForPartialUpdate };

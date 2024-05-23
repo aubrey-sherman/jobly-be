@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { BadRequestError, NotFoundError } from "../expressError.js";
-import { sqlForPartialUpdate, sqlForFiltering } from "../helpers/sql.js";
+import { sqlForPartialUpdate } from "../helpers/sql.js";
 
 /** Related functions for companies. */
 
@@ -71,9 +71,9 @@ class Company {
    * [{ handle, name, description, numEmployees, logoUrl }, ...]
    */
   static async findFiltered(criteria) {
-    const filterConds = sqlForFiltering(criteria);
-
-    console.log("filterConds", filterConds);
+    const condsAndValues = Company.parameterizeFilterQuery(criteria);
+    const conds = condsAndValues.conds;
+    const values = condsAndValues.values;
 
     const companiesRes = await db.query(`
         SELECT handle,
@@ -82,9 +82,63 @@ class Company {
                num_employees AS "numEmployees",
                logo_url      AS "logoUrl"
         FROM companies
-        WHERE ${filterConds}
-        ORDER BY name`);
+        WHERE ${conds}
+        ORDER BY name`,
+      [...values]
+    );
     return companiesRes.rows;
+  }
+
+  /** Returns conditions and placeholder values for an SQL WHERE clause based on
+   * `criteria`
+ * Input:
+ * - criteria: object that can have one or more of the properties minEmployees,
+ * maxEmployees, and nameLike eg. { minEmployees: 2, maxEmployees: 3 }
+ * Output:
+ * Returns an object with a property filterConds that is a string of conditions
+ * for an SQL WHERE clause with values from input and a property condValues that
+ * is the corresponding values for the conditions
+ * eg. {
+ * filterConds: "num_employees >= $1 AND num_employees <= $2",
+ * condValues: [2, 3]
+ * }
+*/
+
+  /** Returns conditions and placeholder values for an SQL WHERE clause based on
+   * provided filter criteria
+   * eg. { minEmployees: 2, maxEmployees: 3 } => {
+   * filterConds: "num_employees >= $1 AND num_employees <= $2",
+   * condValues: [2, 3]
+   * }
+   */
+  static parameterizeFilterQuery(criteria) {
+    const condsAndValues = {};
+    const values = [];
+    const conds = [];
+    let valuesCount = 1;
+
+    if ("minEmployees" in criteria) {
+      conds.push(`num_employees >= $${valuesCount}`);
+      values.push(criteria.minEmployees);
+      valuesCount++;
+    }
+
+    if ("maxEmployees" in criteria) {
+      conds.push(`num_employees <= $${valuesCount}`);
+      values.push(criteria.maxEmployees);
+      valuesCount++;
+    }
+
+    if ("nameLike" in criteria) {
+      conds.push(`name ILIKE $${valuesCount}`);
+      values.push(`%${criteria.nameLike}%`);
+      valuesCount++;
+    }
+
+    condsAndValues.conds = conds.join(" AND ");
+    condsAndValues.values = values;
+
+    return condsAndValues;
   }
 
   /** Given a company handle, return data about company.

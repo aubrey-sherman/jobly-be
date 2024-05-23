@@ -148,6 +148,23 @@ describe("find with filter conditions", function () {
   });
 });
 
+/************************************** parameterize */
+
+describe("test parameterizeFilterQuery", function () {
+  test("all possible valid inputs", function () {
+    const result = Company.parameterizeFilterQuery({
+      minEmployees: 2,
+      maxEmployees: 3,
+      nameLike: "c"
+    });
+
+    expect(result).toEqual({
+      "values": [2, 3, "%c%"],
+      "conds": "num_employees >= $1 AND num_employees <= $2 AND name ILIKE $3",
+    });
+  });
+});
+
 /************************************** get */
 
 describe("get", function () {

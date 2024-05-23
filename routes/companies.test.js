@@ -193,6 +193,8 @@ describe("GET /companies", function () {
     });
   });
 
+  // TODO: we were trying to check if an error was thrown, but the server
+  // responds with JSON
   test("minEmployees > maxEmployees", async function () {
     const resp = await request(app)
       .get("/companies")
