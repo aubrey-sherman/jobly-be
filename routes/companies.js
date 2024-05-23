@@ -54,6 +54,7 @@ router.get("/", async function (req, res, next) {
     return res.json({ companies });
   }
 
+  // COOL: Solution has some sweet syntactic sugar for this one!
   const criteria = {};
   for (const key in req.query) {
     if (key === "minEmployees") {
@@ -67,7 +68,6 @@ router.get("/", async function (req, res, next) {
     }
   }
 
-
   const validator = jsonschema.validate(
     criteria,
     compFilterSchema,
@@ -78,6 +78,7 @@ router.get("/", async function (req, res, next) {
     throw new BadRequestError(errs);
   }
 
+  // NOTE: You could make an argument that this check could live in Models
   if (criteria.minEmployees > criteria.maxEmployees) {
     throw new BadRequestError("Min can't be greater than max.");
   }
