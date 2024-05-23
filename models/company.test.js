@@ -99,6 +99,8 @@ describe("findAll", function () {
 
 describe("find with filter conditions", function () {
 
+  //NOTE: This could be more comprehensively tested
+
   test("finds with one filter", async function () {
     let companies = await Company.findFiltered({ minEmployees: 2 });
     expect(companies).toEqual([{
@@ -151,6 +153,18 @@ describe("find with filter conditions", function () {
 /************************************** parameterize */
 
 describe("test parameterizeFilterQuery", function () {
+
+  test("works with one filter condition", function () {
+    const result = Company.parameterizeFilterQuery({
+      nameLike: "c"
+    });
+
+    expect(result).toEqual({
+      "values": ["%c%"],
+      "conds": "name ILIKE $1"
+    });
+  });
+
   test("all possible valid inputs", function () {
     const result = Company.parameterizeFilterQuery({
       minEmployees: 2,
@@ -162,6 +176,12 @@ describe("test parameterizeFilterQuery", function () {
       "values": [2, 3, "%c%"],
       "conds": "num_employees >= $1 AND num_employees <= $2 AND name ILIKE $3",
     });
+  });
+
+  test("handles no filter criteria", function () {
+    const result = Company.parameterizeFilterQuery({});
+
+    expect(result).toEqual({ conds: '', values: [] });
   });
 });
 
