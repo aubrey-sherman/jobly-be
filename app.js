@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(authenticateJWT);
+// FIXME: add a check if admin route in middleware
 
 app.use("/auth", authRoutes);
 app.use("/companies", companiesRoutes);
@@ -32,7 +33,7 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
   if (process.env.NODE_ENV !== "test") console.error(err.stack);
   /* istanbul ignore next (ignore for coverage) */
-  const status= err.status || 500;
+  const status = err.status || 500;
   const message = err.message;
 
   return res.status(status).json({

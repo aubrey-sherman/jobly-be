@@ -4,7 +4,7 @@ import jsonschema from "jsonschema";
 import { Router } from "express";
 
 import { BadRequestError } from "../expressError.js";
-import { ensureLoggedIn } from "../middleware/auth.js";
+import { ensureLoggedIn, ensureIsAdmin } from "../middleware/auth.js";
 import Company from "../models/company.js";
 import compFilterSchema from "../schemas/compFilter.json" with { type: "json" };
 import compNewSchema from "../schemas/compNew.json" with { type: "json" };
@@ -12,7 +12,7 @@ import compUpdateSchema from "../schemas/compUpdate.json" with { type: "json" };
 
 const router = new Router();
 
-
+// FIXME: make sure only users with is_admin flag can access this
 /** POST / { company } =>  { company }
  *
  * company should be { handle, name, description, numEmployees, logoUrl }
@@ -22,7 +22,7 @@ const router = new Router();
  * Authorization required: login
  */
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
   const validator = jsonschema.validate(
     req.body,
     compNewSchema,
@@ -100,6 +100,7 @@ router.get("/:handle", async function (req, res, next) {
   return res.json({ company });
 });
 
+// FIXME: make sure only users with is_admin flag can access this
 /** PATCH /[handle] { fld1, fld2, ... } => { company }
  *
  * Patches company data.
@@ -111,30 +112,33 @@ router.get("/:handle", async function (req, res, next) {
  * Authorization required: login
  */
 
-router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
-  const validator = jsonschema.validate(
-    req.body,
-    compUpdateSchema,
-    { required: true },
-  );
-  if (!validator.valid) {
-    const errs = validator.errors.map(e => e.stack);
-    throw new BadRequestError(errs);
-  }
+router
+  .patch("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+    const validator = jsonschema.validate(
+      req.body,
+      compUpdateSchema,
+      { required: true },
+    );
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
 
-  const company = await Company.update(req.params.handle, req.body);
-  return res.json({ company });
-});
+    const company = await Company.update(req.params.handle, req.body);
+    return res.json({ company });
+  });
 
+// FIXME: make sure only users with is_admin flag can access this
 /** DELETE /[handle]  =>  { deleted: handle }
  *
  * Authorization: login
  */
 
-router.delete("/:handle", ensureLoggedIn, async function (req, res, next) {
-  await Company.remove(req.params.handle);
-  return res.json({ deleted: req.params.handle });
-});
+router
+  .delete("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+    await Company.remove(req.params.handle);
+    return res.json({ deleted: req.params.handle });
+  });
 
 
 export default router;
