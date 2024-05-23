@@ -205,7 +205,7 @@ describe("GET /users/:username", function () {
     });
   });
 
-  test("works for authorized user/self", async function () {
+  test("works for matching user", async function () {
     const resp = await request(app)
       .get(`/users/u1`)
       .set("authorization", `Bearer ${u1Token}`);
@@ -225,12 +225,13 @@ describe("GET /users/:username", function () {
       .get(`/users/u1`)
       .set("authorization", `Bearer ${u2Token}`);
     expect(resp.body).toEqual({
-      user: {
-        username: "u1",
-        firstName: "U1F",
-        lastName: "U1L",
-        email: "user1@user.com",
-        isAdmin: false,
+      "error": {
+        "message": [
+          "instance is not allowed to have the additional property \"isAdmin\"",
+        ],
+        "status": 400,
+        "message": "Unauthorized",
+        "status": 401,
       },
     });
   });
@@ -244,7 +245,7 @@ describe("GET /users/:username", function () {
   test("not found if user not found", async function () {
     const resp = await request(app)
       .get(`/users/nope`)
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u4Token}`);
     expect(resp.statusCode).toEqual(404);
   });
 });
@@ -256,13 +257,31 @@ describe("PATCH /users/:username", () => {
     const resp = await request(app)
       .patch(`/users/u1`)
       .send({
-        firstName: "New",
+        firstName: "New444",
       })
       .set("authorization", `Bearer ${u4Token}`);
     expect(resp.body).toEqual({
       user: {
         username: "u1",
-        firstName: "New",
+        firstName: "New444",
+        lastName: "U1L",
+        email: "user1@user.com",
+        isAdmin: false,
+      },
+    });
+  });
+
+  test("works for matching users", async function () {
+    const resp = await request(app)
+      .patch(`/users/u1`)
+      .send({
+        firstName: "New111",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({
+      user: {
+        username: "u1",
+        firstName: "New111",
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
@@ -274,9 +293,9 @@ describe("PATCH /users/:username", () => {
     const resp = await request(app)
       .patch(`/users/u1`)
       .send({
-        firstName: "New",
+        firstName: "New222",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.body).toEqual({
       "error": {
         "message": "Unauthorized",
@@ -285,7 +304,7 @@ describe("PATCH /users/:username", () => {
     });
   });
 
-  // TODO: Ask when to check resp.statusCode vs. resp.body to confirm error
+  // FIXME: Ask when to check resp.statusCode vs. resp.body to confirm error
   test("unauth for anon", async function () {
     const resp = await request(app)
       .patch(`/users/u1`)
@@ -321,13 +340,31 @@ describe("PATCH /users/:username", () => {
     expect(resp.statusCode).toEqual(400);
   });
 
+  test("bad request if invalid property", async function () {
+    const resp = await request(app)
+      .patch(`/users/u1`)
+      .send({
+        isAdmin: true,
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(400);
+    expect(resp.body).toEqual({
+      "error": {
+        "message": [
+          "instance is not allowed to have the additional property \"isAdmin\"",
+        ],
+        "status": 400,
+      },
+    });
+  });
+
   test("works: set new password", async function () {
     const resp = await request(app)
       .patch(`/users/u1`)
       .send({
         password: "new-password",
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${u1Token}`);
     expect(resp.body).toEqual({
       user: {
         username: "u1",
@@ -352,10 +389,17 @@ describe("DELETE /users/:username", function () {
     expect(resp.body).toEqual({ deleted: "u1" });
   });
 
-  test("unauth for non-admin users", async function () {
+  test("works for admin users", async function () {
     const resp = await request(app)
       .delete(`/users/u1`)
       .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({ deleted: "u1" });
+  });
+
+  test("unauth for non-admin users", async function () {
+    const resp = await request(app)
+      .delete(`/users/u1`)
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(401);
   });
 

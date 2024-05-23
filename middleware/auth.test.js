@@ -5,7 +5,8 @@ import { UnauthorizedError } from "../expressError.js";
 import {
   authenticateJWT,
   ensureLoggedIn,
-  ensureIsAdmin
+  ensureIsAdmin,
+  ensureAuthUser
 } from "./auth.js";
 import { SECRET_KEY } from "../config.js";
 
@@ -87,5 +88,44 @@ describe("ensureIsAdmin", function () {
     const res = { locals: { user: { isAdmin: false } } };
     expect(() => ensureIsAdmin(req, res, next))
       .toThrow(UnauthorizedError);
+  });
+});
+
+describe("ensureAuthUser", function () {
+  test("works for admin", function () {
+    const req = { params: { username: "testUser" } };
+    const res = { locals: { user: { isAdmin: true } } };
+    ensureAuthUser(req, res, next);
+  });
+
+  test("works for matching user", function () {
+    const req = { params: { username: "testUser" } };
+    const res = { locals: { user: { username: "testUser" } } };
+    ensureAuthUser(req, res, next);
+  });
+
+  test("unauth if no login", function () {
+    const req = { params: { username: "wrongUser" } };
+    const res = { locals: {} };
+    expect(() => ensureAuthUser(req, res, next))
+      .toThrow(UnauthorizedError);
+  });
+
+  test("unauth if not auth user", function () {
+    const req = { params: { username: "wrongUser" } };
+    const res = { locals: { user: { username: "correctUser", isAdmin: false } } };
+
+    expect(() => ensureAuthUser(req, res, next))
+      .toThrow(UnauthorizedError);
+  });
+
+  test("error for no username in req.params", function () {
+    const req = { params: {} };
+    const res = {
+      locals: { user: { username: "correctUser", isAdmin: false } }
+    };
+
+    expect(() => ensureAuthUser(req, res, next))
+      .toThrow(Error);
   });
 });

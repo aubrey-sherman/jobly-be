@@ -55,7 +55,6 @@ describe("POST /companies", function () {
     });
   });
 
-  // FIXME: change expect with message from terminal
   test("unauthorized for non admin user", async function () {
     const resp = await request(app)
       .post("/companies")
@@ -218,8 +217,7 @@ describe("GET /companies", function () {
     });
   });
 
-  // TODO: Reword test titles for readability
-  test("minEmployees > maxEmployees", async function () {
+  test("error for minEmployees > maxEmployees", async function () {
     const resp = await request(app)
       .get("/companies")
       .query(

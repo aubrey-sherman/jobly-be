@@ -12,14 +12,13 @@ import compUpdateSchema from "../schemas/compUpdate.json" with { type: "json" };
 
 const router = new Router();
 
-// FIXME: make sure only users with is_admin flag can access this
 /** POST / { company } =>  { company }
  *
  * company should be { handle, name, description, numEmployees, logoUrl }
  *
  * Returns { handle, name, description, numEmployees, logoUrl }
  *
- * Authorization required: login
+ * Authorization required: login and admin
  */
 
 router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
@@ -100,7 +99,6 @@ router.get("/:handle", async function (req, res, next) {
   return res.json({ company });
 });
 
-// FIXME: make sure only users with is_admin flag can access this
 /** PATCH /[handle] { fld1, fld2, ... } => { company }
  *
  * Patches company data.
@@ -109,7 +107,7 @@ router.get("/:handle", async function (req, res, next) {
  *
  * Returns { handle, name, description, numEmployees, logo_url }
  *
- * Authorization required: login
+ * Authorization required: login and admin
  */
 
 router
@@ -128,10 +126,9 @@ router
     return res.json({ company });
   });
 
-// FIXME: make sure only users with is_admin flag can access this
 /** DELETE /[handle]  =>  { deleted: handle }
  *
- * Authorization: login
+ * Authorization: login and admin
  */
 
 router

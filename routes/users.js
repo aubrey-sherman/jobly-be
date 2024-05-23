@@ -3,7 +3,12 @@
 import jsonschema from "jsonschema";
 import { Router } from "express";
 
-import { ensureLoggedIn, ensureIsAdmin } from "../middleware/auth.js";
+import {
+  ensureLoggedIn,
+  ensureIsAdmin,
+  ensureAuthUser
+} from "../middleware/auth.js";
+
 import { BadRequestError } from "../expressError.js";
 import User from "../models/user.js";
 import { createToken } from "../helpers/tokens.js";
@@ -12,13 +17,6 @@ import userNewSchema from "../schemas/userNew.json" with { type: "json" };
 import userUpdateSchema from "../schemas/userUpdate.json" with { type: "json" };
 
 const router = Router();
-
-// TODO:
-// Add middleware to handle checking user is self
-// Users should GET, PATCH, DELETE their own pages
-// Admin check shouldn't automatically throw a 401 for these cases
-// Handle checking that curr user matches user endpoint
-// Check if any additional testing is needed
 
 /** POST / { user }  => { user, token }
  *
@@ -66,14 +64,14 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: login AND admin or matching user
  **/
 
-// FIXME: Should allow a user to get themselves; admin can always access
-router.get("/:username", ensureLoggedIn, async function (req, res, next) {
-  const user = await User.get(req.params.username);
-  return res.json({ user });
-});
+router
+  .get("/:username", ensureLoggedIn, ensureAuthUser, async function (req, res) {
+    const user = await User.get(req.params.username);
+    return res.json({ user });
+  });
 
 
 /** PATCH /[username] { user } => { user }
@@ -83,37 +81,44 @@ router.get("/:username", ensureLoggedIn, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: login AND admin or matching user
  **/
 
-// FIXME: Allows user to patch their own profile; admin can always access
 router
-  .patch("/:username", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
-    const validator = jsonschema.validate(
-      req.body,
-      userUpdateSchema,
-      { required: true },
-    );
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
-    }
+  .patch(
+    "/:username",
+    ensureLoggedIn,
+    ensureAuthUser,
+    async function (req, res) {
+      const validator = jsonschema.validate(
+        req.body,
+        userUpdateSchema,
+        { required: true },
+      );
+      if (!validator.valid) {
+        const errs = validator.errors.map(e => e.stack);
+        throw new BadRequestError(errs);
+      }
 
-    const user = await User.update(req.params.username, req.body);
-    return res.json({ user });
-  });
+      const user = await User.update(req.params.username, req.body);
+      return res.json({ user });
+    });
 
 
 /** DELETE /[username]  =>  { deleted: username }
  *
- * Authorization required: login
+ * Authorization required: login AND admin or matching user
  **/
-// FIXME: A user can delete their own profile
+
 router
-  .delete("/:username", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
-    await User.remove(req.params.username);
-    return res.json({ deleted: req.params.username });
-  });
+  .delete(
+    "/:username",
+    ensureLoggedIn,
+    ensureAuthUser,
+    async function (req, res) {
+      await User.remove(req.params.username);
+      return res.json({ deleted: req.params.username });
+    });
 
 
 export default router;
