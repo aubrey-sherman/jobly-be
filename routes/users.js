@@ -6,7 +6,7 @@ import { Router } from "express";
 import {
   ensureLoggedIn,
   ensureIsAdmin,
-  ensureAuthUser
+  ensureMatchingUserorAdmin
 } from "../middleware/auth.js";
 
 import { BadRequestError } from "../expressError.js";
@@ -30,7 +30,7 @@ const router = Router();
  * Authorization required: login AND admin
  **/
 
-router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+router.post("/", ensureIsAdmin, async function (req, res) {
   const validator = jsonschema.validate(
     req.body,
     userNewSchema,
@@ -54,7 +54,7 @@ router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
  * Authorization required: login AND admin
  **/
 
-router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+router.get("/", ensureIsAdmin, async function (req, res) {
   const users = await User.findAll();
   return res.json({ users });
 });
@@ -68,7 +68,7 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
  **/
 
 router
-  .get("/:username", ensureLoggedIn, ensureAuthUser, async function (req, res) {
+  .get("/:username", ensureMatchingUserorAdmin, async function (req, res) {
     const user = await User.get(req.params.username);
     return res.json({ user });
   });
@@ -87,8 +87,7 @@ router
 router
   .patch(
     "/:username",
-    ensureLoggedIn,
-    ensureAuthUser,
+    ensureMatchingUserorAdmin,
     async function (req, res) {
       const validator = jsonschema.validate(
         req.body,
@@ -113,8 +112,7 @@ router
 router
   .delete(
     "/:username",
-    ensureLoggedIn,
-    ensureAuthUser,
+    ensureMatchingUserorAdmin,
     async function (req, res) {
       await User.remove(req.params.username);
       return res.json({ deleted: req.params.username });
