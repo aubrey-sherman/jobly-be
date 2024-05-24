@@ -18,7 +18,7 @@ import {
   commonBeforeEach,
   u1Token,
   u2Token,
-  u4Token
+  u4Token as testAdminToken
 } from "./_testCommon.js";
 
 
@@ -41,7 +41,7 @@ describe("POST /users", function () {
         email: "new@email.com",
         isAdmin: false,
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       user: {
@@ -65,7 +65,7 @@ describe("POST /users", function () {
         email: "new@email.com",
         isAdmin: true,
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       user: {
@@ -112,8 +112,18 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(400);
+  });
+
+  test("unauth non admin user with missing data", async function () {
+    const resp = await request(app)
+      .post("/users")
+      .send({
+        username: "u-new",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("bad request if invalid data", async function () {
@@ -127,8 +137,23 @@ describe("POST /users", function () {
         email: "not-an-email",
         isAdmin: true,
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(400);
+  });
+
+  test("unauth non admin user with invalid data", async function () {
+    const resp = await request(app)
+      .post("/users")
+      .send({
+        username: "u-new",
+        firstName: "First-new",
+        lastName: "Last-newL",
+        password: "password-new",
+        email: "not-an-email",
+        isAdmin: true,
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
 
@@ -138,7 +163,7 @@ describe("GET /users", function () {
   test("works for admin users", async function () {
     const resp = await request(app)
       .get("/users")
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.body).toEqual({
       users: [
         {
@@ -193,7 +218,7 @@ describe("GET /users/:username", function () {
   test("works for admin users", async function () {
     const resp = await request(app)
       .get(`/users/u1`)
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.body).toEqual({
       user: {
         username: "u1",
@@ -220,19 +245,17 @@ describe("GET /users/:username", function () {
     });
   });
 
-  test("unauth for unauthorized user", async function () {
+  // TODO: global change unauth to be more specific
+  test("unauth for wrong user", async function () {
     const resp = await request(app)
       .get(`/users/u1`)
       .set("authorization", `Bearer ${u2Token}`);
+    console.log("HERE resp.body ---------->", resp.body);
     expect(resp.body).toEqual({
       "error": {
-        "message": [
-          "instance is not allowed to have the additional property \"isAdmin\"",
-        ],
-        "status": 400,
         "message": "Unauthorized",
-        "status": 401,
-      },
+        "status": 401
+      }
     });
   });
 
@@ -245,8 +268,15 @@ describe("GET /users/:username", function () {
   test("not found if user not found", async function () {
     const resp = await request(app)
       .get(`/users/nope`)
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(404);
+  });
+
+  test("unauth wrong user with user not found", async function () {
+    const resp = await request(app)
+      .get(`/users/nope`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
 
@@ -259,7 +289,7 @@ describe("PATCH /users/:username", () => {
       .send({
         firstName: "New444",
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.body).toEqual({
       user: {
         username: "u1",
@@ -304,7 +334,8 @@ describe("PATCH /users/:username", () => {
     });
   });
 
-  // FIXME: Ask when to check resp.statusCode vs. resp.body to confirm error
+  // don't test your libraries!
+  // test the status code (to ensure what the browser is receiving)
   test("unauth for anon", async function () {
     const resp = await request(app)
       .patch(`/users/u1`)
@@ -326,8 +357,18 @@ describe("PATCH /users/:username", () => {
       .send({
         firstName: "Nope",
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(404);
+  });
+
+  test("unauth wrong user with no such user", async function () {
+    const resp = await request(app)
+      .patch(`/users/nope`)
+      .send({
+        firstName: "Nope",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("bad request if invalid data", async function () {
@@ -336,8 +377,18 @@ describe("PATCH /users/:username", () => {
       .send({
         firstName: 42,
       })
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(400);
+  });
+
+  test("unauth wrong user with invalid data", async function () {
+    const resp = await request(app)
+      .patch(`/users/u1`)
+      .send({
+        firstName: 42,
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("bad request if invalid property", async function () {
@@ -356,6 +407,16 @@ describe("PATCH /users/:username", () => {
         "status": 400,
       },
     });
+  });
+
+  test("unauth wrong user with invalid property", async function () {
+    const resp = await request(app)
+      .patch(`/users/u1`)
+      .send({
+        isAdmin: true,
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("works: set new password", async function () {
@@ -385,11 +446,11 @@ describe("DELETE /users/:username", function () {
   test("works for admin users", async function () {
     const resp = await request(app)
       .delete(`/users/u1`)
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.body).toEqual({ deleted: "u1" });
   });
 
-  test("works for admin users", async function () {
+  test("works for matching users", async function () {
     const resp = await request(app)
       .delete(`/users/u1`)
       .set("authorization", `Bearer ${u1Token}`);
@@ -412,7 +473,14 @@ describe("DELETE /users/:username", function () {
   test("not found if user missing", async function () {
     const resp = await request(app)
       .delete(`/users/nope`)
-      .set("authorization", `Bearer ${u4Token}`);
+      .set("authorization", `Bearer ${testAdminToken}`);
     expect(resp.statusCode).toEqual(404);
+  });
+
+  test("unauth wrong user with user missing", async function () {
+    const resp = await request(app)
+      .delete(`/users/nope`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });

@@ -51,7 +51,8 @@ function ensureIsAdmin(req, res, next) {
   throw new UnauthorizedError();
 }
 
-
+// FIXME: mention the error thrown in the docstring
+// be clear with names, ensureMatchingUserorAdmin
 /** Middleware to use to check for admin or matching user.
  *
  * If not, raises Unauthorized.

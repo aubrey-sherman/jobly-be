@@ -89,6 +89,8 @@ describe("ensureIsAdmin", function () {
     expect(() => ensureIsAdmin(req, res, next))
       .toThrow(UnauthorizedError);
   });
+
+  //TODO: add a test for a truthy isAdmin, like a string
 });
 
 describe("ensureAuthUser", function () {
@@ -113,7 +115,9 @@ describe("ensureAuthUser", function () {
 
   test("unauth if not auth user", function () {
     const req = { params: { username: "wrongUser" } };
-    const res = { locals: { user: { username: "correctUser", isAdmin: false } } };
+    const res = {
+      locals: { user: { username: "correctUser", isAdmin: false } }
+    };
 
     expect(() => ensureAuthUser(req, res, next))
       .toThrow(UnauthorizedError);

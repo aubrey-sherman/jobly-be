@@ -30,7 +30,7 @@ const router = Router();
  * Authorization required: login AND admin
  **/
 
-router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
   const validator = jsonschema.validate(
     req.body,
     userNewSchema,
@@ -54,7 +54,7 @@ router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) 
  * Authorization required: login AND admin
  **/
 
-router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
   const users = await User.findAll();
   return res.json({ users });
 });

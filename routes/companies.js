@@ -54,6 +54,10 @@ router.get("/", async function (req, res, next) {
   }
 
   // COOL: Solution has some sweet syntactic sugar for this one!
+  // set criteria equal to req.query
+  // check if minEmployees in criteria, if so cast as Number
+  // same for maxEmployees
+
   const criteria = {};
   for (const key in req.query) {
     if (key === "minEmployees") {
