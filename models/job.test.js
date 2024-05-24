@@ -16,6 +16,10 @@ import {
   commonAfterEach,
   commonBeforeAll,
   commonBeforeEach,
+  j1Id,
+  j2Id,
+  j3Id,
+  j4Id
 } from "./_testCommon.js";
 
 beforeAll(commonBeforeAll);
@@ -23,7 +27,7 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
-// TODO: create test
+/************************************** create */
 
 describe("create", function () {
   // FIXME: can we pass in equity as a Number or does it need to be a String?
@@ -37,7 +41,6 @@ describe("create", function () {
       companyHandle: "c1"
     };
     const job = await Job.create(newJob);
-    console.log("THIS IS THE JOB ---------->", job);
     expect(job).toEqual({
       id: job.id,
       title: 'Dream Lawyer',
@@ -46,13 +49,11 @@ describe("create", function () {
       companyHandle: "c1"
     });
 
-    // FIXME: may need to change SELECT columns
     // TODO: why did we need double quotes for companyHandle
     const result = await db.query(
       `SELECT id, title, salary, equity, company_handle AS "companyHandle"
        FROM jobs
        WHERE id = ${job.id}`);
-    // console.log("THIS IS THE RESULT ---------->", result);
     expect(result.rows[0]).toEqual(
       {
         id: job.id,
@@ -65,34 +66,76 @@ describe("create", function () {
   });
 });
 
-// findAll
+/************************************** findAll */
 
 describe("findAll", function () {
   test("works: no filter", async function () {
     const jobs = await Job.findAll();
     expect(jobs).toEqual(
-      [{
-        id: expect.any(Number),
-        title: "",
-        salary: 5,
-        equity: 0,
-        company_handle: ""
-      }
+      [
+        {
+          "company_handle": "c1",
+          "equity": "0",
+          id: expect.any(Number),
+          "salary": 50000,
+          "title": "job1",
+        },
+        {
+          "company_handle": "c2",
+          "equity": "0.01",
+          id: expect.any(Number),
+          "salary": 60000,
+          "title": "job2",
+        },
+        {
+          "company_handle": "c2",
+          "equity": "0.02",
+          id: expect.any(Number),
+          "salary": 70000,
+          "title": "job3",
+        },
+        {
+          "company_handle": "c2",
+          "equity": "0",
+          id: expect.any(Number),
+          "salary": 80000,
+          "title": "job4",
+        }
       ]
     );
   });
-})
+});
 
 
-  // filter
+// filter
 
-  // parameterize
+// parameterize
 
-  // get a job
+/************************************** get */
+describe("get", function () {
+  test("works", async function () {
+    let job = await Job.get(j1Id);
+    expect(job).toEqual({
+      "companyHandle": "c1",
+      "equity": "0",
+      id: j1Id,
+      "salary": 50000,
+      "title": "job1",
+    });
+  });
+
+  // test("not found if no such company", async function () {
+  //   try {
+  //     await Company.get("nope");
+  //     throw new Error("fail test, you shouldn't get here");
+  //   } catch (err) {
+  //     expect(err instanceof NotFoundError).toBeTruthy();
+  //   }
+  // });
+});
 
 
+// update
 
-  // update
-
-  // remove
-  ;
+// remove
+;

@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import db from "../db.js";
 import { BCRYPT_WORK_FACTOR } from "../config.js";
 
+let j1Id, j2Id, j3Id, j4Id;
+
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM companies");
@@ -27,16 +29,22 @@ async function commonBeforeAll() {
     await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
   ]);
 
-  await db.query(`
+  const jobResults = await db.query(`
       INSERT INTO jobs(
         title,
         salary,
         equity,
         company_handle)
       VALUES ('job1', 50000, 0, 'c1'),
-             ('job2, 60000, 0.01, 'c2'),
-             ('job3, 70000, 0.02, 'c2'),
-             ('job4', 80000, 0, 'c2')`);
+             ('job2', 60000, 0.01, 'c2'),
+             ('job3', 70000, 0.02, 'c2'),
+             ('job4', 80000, 0, 'c2')
+      RETURNING id`);
+
+  j1Id = jobResults.rows[0].id;
+  j2Id = jobResults.rows[1].id;
+  j3Id = jobResults.rows[2].id;
+  j4Id = jobResults.rows[3].id;
 }
 
 async function commonBeforeEach() {
@@ -57,4 +65,8 @@ export {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  j1Id,
+  j2Id,
+  j3Id,
+  j4Id
 };
