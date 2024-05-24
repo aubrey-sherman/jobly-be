@@ -21,7 +21,7 @@ const router = new Router();
  * Authorization required: login and admin
  */
 
-router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+router.post("/", ensureIsAdmin, async function (req, res) {
   const validator = jsonschema.validate(
     req.body,
     compNewSchema,
@@ -115,7 +115,7 @@ router.get("/:handle", async function (req, res, next) {
  */
 
 router
-  .patch("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+  .patch("/:handle", ensureIsAdmin, async function (req, res) {
     const validator = jsonschema.validate(
       req.body,
       compUpdateSchema,
@@ -136,7 +136,7 @@ router
  */
 
 router
-  .delete("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res) {
+  .delete("/:handle", ensureIsAdmin, async function (req, res) {
     await Company.remove(req.params.handle);
     return res.json({ deleted: req.params.handle });
   });
