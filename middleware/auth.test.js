@@ -6,7 +6,7 @@ import {
   authenticateJWT,
   ensureLoggedIn,
   ensureIsAdmin,
-  ensureAuthUser
+  ensureMatchingUserorAdmin
 } from "./auth.js";
 import { SECRET_KEY } from "../config.js";
 
@@ -72,7 +72,7 @@ describe("ensureLoggedIn", function () {
 describe("ensureIsAdmin", function () {
   test("works", function () {
     const req = {};
-    const res = { locals: { user: { isAdmin: true } } };
+    const res = { locals: { user: { username: "user", isAdmin: true } } };
     ensureIsAdmin(req, res, next);
   });
 
@@ -90,26 +90,31 @@ describe("ensureIsAdmin", function () {
       .toThrow(UnauthorizedError);
   });
 
-  //TODO: add a test for a truthy isAdmin, like a string
+  test("unauth if not admin", function () {
+    const req = {};
+    const res = { locals: { user: { isAdmin: "true" } } };
+    expect(() => ensureIsAdmin(req, res, next))
+      .toThrow(UnauthorizedError);
+  });
 });
 
-describe("ensureAuthUser", function () {
+describe("ensureMatchingUserorAdmin", function () {
   test("works for admin", function () {
     const req = { params: { username: "testUser" } };
     const res = { locals: { user: { isAdmin: true } } };
-    ensureAuthUser(req, res, next);
+    ensureMatchingUserorAdmin(req, res, next);
   });
 
   test("works for matching user", function () {
     const req = { params: { username: "testUser" } };
     const res = { locals: { user: { username: "testUser" } } };
-    ensureAuthUser(req, res, next);
+    ensureMatchingUserorAdmin(req, res, next);
   });
 
   test("unauth if no login", function () {
     const req = { params: { username: "wrongUser" } };
     const res = { locals: {} };
-    expect(() => ensureAuthUser(req, res, next))
+    expect(() => ensureMatchingUserorAdmin(req, res, next))
       .toThrow(UnauthorizedError);
   });
 
@@ -119,7 +124,7 @@ describe("ensureAuthUser", function () {
       locals: { user: { username: "correctUser", isAdmin: false } }
     };
 
-    expect(() => ensureAuthUser(req, res, next))
+    expect(() => ensureMatchingUserorAdmin(req, res, next))
       .toThrow(UnauthorizedError);
   });
 
@@ -129,7 +134,7 @@ describe("ensureAuthUser", function () {
       locals: { user: { username: "correctUser", isAdmin: false } }
     };
 
-    expect(() => ensureAuthUser(req, res, next))
+    expect(() => ensureMatchingUserorAdmin(req, res, next))
       .toThrow(Error);
   });
 });
