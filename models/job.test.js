@@ -124,18 +124,87 @@ describe("get", function () {
     });
   });
 
-  // test("not found if no such company", async function () {
-  //   try {
-  //     await Company.get("nope");
-  //     throw new Error("fail test, you shouldn't get here");
-  //   } catch (err) {
-  //     expect(err instanceof NotFoundError).toBeTruthy();
-  //   }
-  // });
+  test("not found if no such job", async function () {
+    try {
+      await Job.get(2424); // NOTE: does this need to be an int?
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
 });
 
 
-// update
+/************************************** update */
 
-// remove
-;
+describe("update", function () {
+  const updatedJob = {
+    "equity": "0",
+    "salary": 700000,
+    "title": "job3",
+  };
+
+  test("works", async function () {
+    let job = await Job.update(j3Id, updatedJob);
+    expect(job).toEqual({
+      id: j3Id,
+      ...updatedJob
+    });
+
+    const result = await db.query(`
+    SELECT id, title, salary, equity, company_handle AS "companyHandle"
+    FROM companies
+    WHERE id = ${j3Id}
+    `);
+    expect(result.rows).toEqual([{
+      id: j3Id,
+      equity: "0",
+      salary: 700000,
+      title: "job3"
+    }]);
+  });
+
+  test("works: null fields", async function () {
+    const updatedJobNullSets = {
+      "equity": null,
+      "salary": null,
+      "title": "job3"
+    };
+
+    let job = await Job.update(j3Id, updatedJobNullSets);
+    expect(job).toEqual({
+      id: j3Id,
+      ...updatedJobNullSets
+    });
+
+    const result = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS "companyHandle"
+      FROM jobs
+      WHERE id = ${j3Id}`);
+    expect(result.rows).toEqual([{
+      "equity": null,
+      "salary": null,
+      "title": "job3"
+    }]);
+  });
+
+  test("not found if no such job", async function () {
+    try {
+      await Job.update(2424, updatedJob);
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("bad request with no data", async function () {
+    try {
+      await Job.update(2424, {});
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+});
+
+//remove
