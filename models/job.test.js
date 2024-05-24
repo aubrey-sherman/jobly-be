@@ -67,14 +67,32 @@ describe("create", function () {
 
 // findAll
 
+describe("findAll", function () {
+  test("works: no filter", async function () {
+    const jobs = await Job.findAll();
+    expect(jobs).toEqual(
+      [{
+        id: expect.any(Number),
+        title: "",
+        salary: 5,
+        equity: 0,
+        company_handle: ""
+      }
+      ]
+    );
+  });
+})
 
-// filter
 
-// parameterize
+  // filter
 
-// get A job
+  // parameterize
 
-// update
+  // get a job
 
-// remove
-;
+
+
+  // update
+
+  // remove
+  ;
