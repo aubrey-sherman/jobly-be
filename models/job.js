@@ -42,9 +42,24 @@ class Job {
                  equity,
                  company_handle
           FROM jobs
-          ORDER BY equity`);
+          ORDER BY id`);
     return jobsRes.rows;
   }
+
+  // TODO: findFiltered goes here
+
+  /** Given a job id, return data about job.
+   *
+   *  Returns { id, title, salary, equity, company_handle }
+   *
+   *  Throws NotFoundError if not found.
+   **/
+
+  // TODO: update goes here
+
+  // TODO: delete goes here
+
+
 }
 
 export default Job;
