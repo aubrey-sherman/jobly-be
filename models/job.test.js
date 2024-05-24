@@ -26,32 +26,42 @@ afterAll(commonAfterAll);
 // TODO: create test
 
 describe("create", function () {
-  // FIXME: confirm string or num?
-  const newJob = {
-    title: 'Dream Lawyer',
-    salary: 600000,
-    equity: 0.015,
-    company_handle: "Dream Law Firm"
-  };
+  // FIXME: can we pass in equity as a Number or does it need to be a String?
+
 
   test("works", async function () {
+    const newJob = {
+      title: 'Dream Lawyer',
+      salary: 600000,
+      equity: 0.015,
+      companyHandle: "c1"
+    };
     const job = await Job.create(newJob);
-    expect(job).toEqual(newJob);
+    console.log("THIS IS THE JOB ---------->", job);
+    expect(job).toEqual({
+      id: job.id,
+      title: 'Dream Lawyer',
+      salary: 600000,
+      equity: "0.015",
+      companyHandle: "c1"
+    });
 
     // FIXME: may need to change SELECT columns
+    // TODO: why did we need double quotes for companyHandle
     const result = await db.query(
-      `SELECT id, title, salary, equity, company_handle
+      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
        FROM jobs
        WHERE id = ${job.id}`);
-    expect(result.rows).toEqual([
+    // console.log("THIS IS THE RESULT ---------->", result);
+    expect(result.rows[0]).toEqual(
       {
         id: job.id,
         title: 'Dream Lawyer',
         salary: 600000,
-        equity: 0.015,
-        company_handle: "Dream Law Firm"
+        equity: "0.015",
+        companyHandle: "c1"
       }
-    ]);
+    );
   });
 });
 
