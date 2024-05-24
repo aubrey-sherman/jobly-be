@@ -40,34 +40,34 @@ function ensureLoggedIn(req, res, next) {
 
 /** Middleware to use when they must be an admin.
  *
- * If not, raises Unauthorized.
+ *  Checks that user is both logged in and an admin.
+ *
+ *  If not, raises Unauthorized.
  */
 
 function ensureIsAdmin(req, res, next) {
-  if (res.locals.user?.isAdmin === true) {
+
+  if (res.locals.user?.username && res.locals.user?.isAdmin === true) {
     return next();
   }
 
   throw new UnauthorizedError();
 }
 
-// FIXME: mention the error thrown in the docstring
-// be clear with names, ensureMatchingUserorAdmin
-/** Middleware to use to check for admin or matching user.
+/** Middleware to use to check for a logged-in admin or matching user.
  *
- * If not, raises Unauthorized.
+ *  Throws error to developers if there is no username in req. params.
+ *
+ * If username is not matching or not admin, raises Unauthorized.
  */
 
-function ensureAuthUser(req, res, next) {
-  if (!("username" in req.params)) {
-    throw new Error("wrongly registered");
-  }
+function ensureMatchingUserorAdmin(req, res, next) {
 
-  if (res.locals.user?.isAdmin === true) {
-    return next();
-  }
+  const currUser = res.locals.user;
+  const isAdmin = currUser?.isAdmin;
 
-  if (res.locals.user && res.locals.user.username === req.params.username) {
+  if (currUser && (
+    currUser.username === req.params.username || isAdmin === true)) {
     return next();
   }
 
@@ -79,5 +79,5 @@ export {
   authenticateJWT,
   ensureLoggedIn,
   ensureIsAdmin,
-  ensureAuthUser
+  ensureMatchingUserorAdmin
 };
