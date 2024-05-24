@@ -46,7 +46,12 @@ class Job {
     return jobsRes.rows;
   }
 
-  /**  */
+  /** Given a job id, return data about job.
+ *
+ *  Returns { id, title, salary, equity, company_handle }
+ *
+ *  Throws NotFoundError if not found.
+ **/
   static async get(id) {
     const jobRes = await db.query(`
         SELECT id,
@@ -65,13 +70,6 @@ class Job {
   }
 
   // TODO: findFiltered goes here
-
-  /** Given a job id, return data about job.
-   *
-   *  Returns { id, title, salary, equity, company_handle }
-   *
-   *  Throws NotFoundError if not found.
-   **/
 
   // TODO: update goes here
 
