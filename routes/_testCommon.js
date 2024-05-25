@@ -1,7 +1,10 @@
 import db from "../db.js";
 import User from "../models/user";
 import Company from "../models/company";
+import Job from "../models/job";
 import { createToken } from "../helpers/tokens";
+
+let j1Id, j2Id, j3Id, j4Id;
 
 
 async function commonBeforeAll() {
@@ -34,6 +37,42 @@ async function commonBeforeAll() {
       description: "Desc3",
       logoUrl: "http://c3.img",
     });
+
+  const job1 = await Job.create(
+    {
+      title: "job1",
+      salary: 50000,
+      equity: 0,
+      companyHandle: "c1"
+    });
+  j1Id = job1.id;
+
+  const job2 = await Job.create(
+    {
+      title: "job2",
+      salary: 60000,
+      equity: 0.01,
+      companyHandle: "c2"
+    });
+  j2Id = job2.id;
+
+  const job3 = await Job.create(
+    {
+      title: "job3",
+      salary: 70000,
+      equity: 0.02,
+      companyHandle: "c2"
+    });
+  j3Id = job3.id;
+
+  const job4 = await Job.create(
+    {
+      title: "job4",
+      salary: 80000,
+      equity: 0,
+      companyHandle: "c2"
+    });
+  j4Id = job4.id;
 
   await User.register({
     username: "u1",
@@ -95,4 +134,8 @@ export {
   u1Token,
   u2Token,
   testAdminToken as u4Token,
+  j1Id,
+  j2Id,
+  j3Id,
+  j4Id
 };
