@@ -1,7 +1,12 @@
 import jwt from "jsonwebtoken";
 import  { SECRET_KEY} from "../config.js";
 
-/** return signed JWT {username, isAdmin} from user data. */
+/** Returns a signed JWT { username, isAdmin } from user data.
+ *
+ * { username: string,
+ *   isAdmin: boolean
+ * }
+*/
 
 function createToken(user) {
   let payload = {

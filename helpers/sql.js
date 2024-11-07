@@ -1,25 +1,18 @@
 import { BadRequestError } from "../expressError.js";
 
-// TODO: tie all the examples together
-// TODO: show input => output
-/** Given data to update in the database, returns data in a parameterized format
- * for the SET clause in an SQL query
- * Throws a Bad Request error if no data was entered.
+/** Returns data to update in database in a parameterized format.
  *
- * Input:
- * - dataToUpdate: object, data to be converted to a parameterized SQL query
- * that will have placeholders for variables eg. {firstName: 'Aliya', age: 32}
- * - jsToSql: object, key is JS variable name, value is corresponding database
- * column eg. {numEmployees: "num_employees"}
+ * Throws a Bad Request error if no data is entered.
  *
- * Output:
- * Returns an object with the properties `setCols` that contains a string of the
- * SQL columns to be set with the corresponding placeholders and `values` that
- * contains the corresponding values for the placeholders
- * eg. {
- * setCols: '"first_name"=$1', '"age"=$2',
- * values: ["Aliya", 32]
- * }
+ * Takes two parameters:
+ * - dataToUpdate, e.g. { firstName: 'Aliya', age: 32}
+ * - jsToSql: { numEmployees: "num_employees"}
+ *
+ * Output: object with two properties--
+ *  `setCols`: contains a string of the SQL columns to be set with the corresponding placeholders
+ *  `values`: contains the corresponding values for the placeholders
+ *
+ * Example: { setCols: '"first_name"=$1', '"age"=$2', values: ["Aliya", 32]}
  */
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {

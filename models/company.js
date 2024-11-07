@@ -5,15 +5,13 @@ import { sqlForPartialUpdate } from "../helpers/sql.js";
 /** Related functions for companies. */
 
 class Company {
-  /** Create a company (from data), update db, return new company data.
+  /** Creates a company from data, inserts in database.
    *
-   * data should be { handle, name, description, numEmployees, logoUrl }
+   * Returns new company data as
+   *    { handle, name, description, numEmployees, logoUrl }
    *
-   * Returns { handle, name, description, numEmployees, logoUrl }
-   *
-   * Throws BadRequestError if company already in database.
+   * Throws BadRequestError if the company already exists in the database.
    * */
-
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(`
         SELECT handle
@@ -48,9 +46,9 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Finds all companies.
    *
-   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * Returns list as [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
   static async findAll() {
@@ -65,19 +63,18 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** Find all companies matching given filter criteria, an object that can only
-   * include minEmployees (an int), maxEmployees (an int) and nameLike (string).
+  /** Given filter criteria as {
+   *  minEmployees?: number,
+   *  maxEmployees?: number,
+   *  nameLike?: string
+   * },
    *
-   * Returns array of objects of company data based on filter conditions, e.g.
-   * [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * returns list of matching company objects like
+   *  [{ handle, name, description, numEmployees, logoUrl }, ...]
    */
   static async findFiltered(criteria) {
 
-    // COOL: This could be refactored to be part of the findAll method above (only if it's renamed!)
-
-    // COOL: This is a good opp for destructuring from the input criteria
-    // This makes the docstring parameters explicit
-    const { conds, values } = Company.parameterizeFilterQuery(criteria);
+    const { conditions, values } = Company.parameterizeFilterQuery(criteria);
 
     const companiesRes = await db.query(`
         SELECT handle,
@@ -86,7 +83,7 @@ class Company {
                num_employees AS "numEmployees",
                logo_url      AS "logoUrl"
         FROM companies
-        WHERE ${conds}
+        WHERE ${conditions}
         ORDER BY name`,
       values
     );
@@ -95,37 +92,43 @@ class Company {
 
 
   /** Returns conditions and placeholder values for an SQL WHERE clause based on
-   * provided filter criteria (object), which can only include minEmployees (an
-   * int), maxEmployees (an int), and nameLike (string).
-   * eg. { minEmployees: 2, maxEmployees: 3 } => {
-   * filterConds: "num_employees >= $1 AND num_employees <= $2",
-   * condValues: [2, 3]
-   * }
+   * provided filter criteria as {
+   *                              minEmployees?: number,
+   *                              maxEmployees?: number,
+   *                              nameLike?: string
+   *                             }
+   *
+   * Example:
+   * Input: { minEmployees: 2, maxEmployees: 3 }
+   * Output: {
+   *          filterConditions: "num_employees >= $1 AND num_employees <= $2",
+   *          conditionValues: [2, 3]
+   *         }
    */
   static parameterizeFilterQuery(criteria) {
-    const condsAndValues = {};
+    const conditionsAndValues = {};
     const values = [];
-    const conds = [];
+    const conditions = [];
 
     if ("minEmployees" in criteria) {
-      conds.push(`num_employees >= $${values.length + 1}`);
+      conditions.push(`num_employees >= $${values.length + 1}`);
       values.push(criteria.minEmployees);
     }
 
     if ("maxEmployees" in criteria) {
-      conds.push(`num_employees <= $${values.length + 1}`);
+      conditions.push(`num_employees <= $${values.length + 1}`);
       values.push(criteria.maxEmployees);
     }
 
     if ("nameLike" in criteria) {
-      conds.push(`name ILIKE $${values.length + 1}`);
+      conditions.push(`name ILIKE $${values.length + 1}`);
       values.push(`%${criteria.nameLike}%`);
     }
 
-    condsAndValues.conds = conds.join(" AND ");
-    condsAndValues.values = values;
+    conditionsAndValues.conds = conds.join(" AND ");
+    conditionsAndValues.values = values;
 
-    return condsAndValues;
+    return conditionsAndValues;
   }
 
   /** Given a company handle, return data about company.
@@ -153,7 +156,7 @@ class Company {
     return company;
   }
 
-  /** Update company data with `data`.
+  /** Updates company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
    * fields; this only changes provided ones.
@@ -192,7 +195,7 @@ class Company {
     return company;
   }
 
-  /** Delete given company from database; returns undefined.
+  /** Deletes given company from database and returns undefined.
    *
    * Throws NotFoundError if company not found.
    **/

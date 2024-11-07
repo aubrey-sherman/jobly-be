@@ -54,11 +54,11 @@ function ensureIsAdmin(req, res, next) {
   throw new UnauthorizedError();
 }
 
-/** Middleware to use to check for a logged-in admin or matching user.
+/** Middleware to check for a logged-in admin or matching user.
  *
- *  Throws error to developers if there is no username in req. params.
+ * Throws error to developers if there is no username in req.params.
  *
- * If username is not matching or not admin, raises Unauthorized.
+ * If username is not matching or is not an admin, raises Unauthorized.
  */
 
 function ensureMatchingUserorAdmin(req, res, next) {
