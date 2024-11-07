@@ -250,7 +250,6 @@ describe("GET /users/:username", function () {
     const resp = await request(app)
       .get(`/users/u1`)
       .set("authorization", `Bearer ${u2Token}`);
-    console.log("HERE resp.body ---------->", resp.body);
     expect(resp.body).toEqual({
       "error": {
         "message": "Unauthorized",

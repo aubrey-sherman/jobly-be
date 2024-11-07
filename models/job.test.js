@@ -120,7 +120,6 @@ describe("findAll", function () {
 /************************************** get */
 describe("get", function () {
   test("works", async function () {
-    console.log("HERE IS THE ID -------------->", j1Id);
     let job = await Job.get(j1Id);
     expect(job).toEqual({
       "companyHandle": "c1",
@@ -133,7 +132,7 @@ describe("get", function () {
 
   test("not found if no such job", async function () {
     try {
-      await Job.get(2424); // NOTE: does this need to be an int?
+      await Job.get(2424);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
